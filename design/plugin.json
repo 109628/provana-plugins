@@ -1,0 +1,28 @@
+{
+  "name": "provana-design",
+  "version": "1.0.0",
+  "description": "UI/UX, design system, and component styling skills for Provana engineering teams",
+  "author": "109628",
+  "license": "MIT",
+  "repository": "109628/provana-plugins",
+  "components": {
+    "skills": {
+      "ui-ux": {
+        "path": "skills/ui-ux",
+        "description": "Comprehensive UI/UX rules: accessibility, touch targets, typography, color, animation, forms, navigation, data visualization. Use when designing or reviewing any UI — dashboards, admin panels, data tables, forms, modals."
+      },
+      "design-system": {
+        "path": "skills/design-system",
+        "description": "Provana design tokens, three-layer token architecture (primitive→semantic→component), CSS variables, spacing/typography scales, Tailwind theme configuration. Use when setting up or extending the design system."
+      },
+      "ui-styling": {
+        "path": "skills/ui-styling",
+        "description": "shadcn/ui component patterns, Tailwind CSS conventions, Next.js App Router layout patterns, dark mode, responsive design. Use when building or reviewing UI components in Next.js projects."
+      }
+    }
+  },
+  "agents": {
+    "claude-code": { "supported": true },
+    "copilot": { "supported": true, "skills_only": true }
+  }
+}
