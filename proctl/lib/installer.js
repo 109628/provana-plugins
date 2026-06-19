@@ -41,8 +41,8 @@ class Installer {
       ui
     } = options;
 
-    // 1. Resolve source
-    const { manifest: rawManifest, fetchFile } = await this.registry.resolve(source);
+    // 1. Resolve source — pass plugin name for monorepo subfolder lookup
+    const { manifest: rawManifest, fetchFile } = await this.registry.resolve(source, { plugin: pluginFilter });
 
     // 2. Parse manifest
     let manifest;
@@ -193,6 +193,7 @@ class Installer {
       const now = new Date().toISOString();
       this.state.set(manifest.name, {
         source,
+        plugin: pluginFilter || null,
         version: manifest.version,
         installedAt: existing.installedAt || now,
         updatedAt: now,
@@ -309,7 +310,7 @@ class Installer {
     const pluginState = this.state.get(pluginName);
     if (!pluginState) throw new InstallError(`Plugin "${pluginName}" is not installed`);
 
-    const { manifest: rawManifest } = await this.registry.resolve(pluginState.source);
+    const { manifest: rawManifest } = await this.registry.resolve(pluginState.source, { plugin: pluginState.plugin });
     const manifest = new Manifest(rawManifest);
 
     if (manifest.version === pluginState.version && !options.force) {

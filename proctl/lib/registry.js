@@ -85,39 +85,54 @@ class Registry {
     return result;
   }
 
-  async _resolveGitHub(owner, repo, token) {
+  async _resolveGitHub(owner, repo, token, subfolder) {
     const tok = token || this.token;
     const branches = ['main', 'HEAD', 'master'];
     let manifest = null;
     let foundBranch = null;
 
+    // Build candidate paths: if subfolder given, try it first; then root
+    const candidates = subfolder
+      ? [`${subfolder}/plugin.json`, 'plugin.json']
+      : ['plugin.json'];
+
+    let manifestPath = null;
+
     for (const branch of branches) {
-      try {
-        const res = await this._fetchGitHubRaw(owner, repo, 'plugin.json', branch, tok);
-        if (res.status === 200) {
-          try {
-            manifest = JSON.parse(res.body.toString('utf8'));
-            foundBranch = branch;
-            break;
-          } catch {
-            // not valid JSON, try next branch
+      for (const candidate of candidates) {
+        try {
+          const res = await this._fetchGitHubRaw(owner, repo, candidate, branch, tok);
+          if (res.status === 200) {
+            try {
+              manifest = JSON.parse(res.body.toString('utf8'));
+              foundBranch = branch;
+              // fetchFile paths are relative to the dir containing plugin.json
+              manifestPath = candidate.includes('/') ? candidate.substring(0, candidate.lastIndexOf('/') + 1) : '';
+              break;
+            } catch {
+              // not valid JSON
+            }
           }
+        } catch {
+          // network error
         }
-      } catch {
-        // network error, try next
       }
+      if (manifest) break;
     }
 
     if (!manifest) {
+      const loc = subfolder ? `${owner}/${repo}/${subfolder}/plugin.json` : `${owner}/${repo}`;
       throw new RegistryError(
-        `Could not find plugin.json at ${owner}/${repo} — ensure the repo exists and has a plugin.json at root`
+        `Could not find plugin.json at ${loc} — ensure the repo exists and has a plugin.json at root or in the named subfolder`
       );
     }
 
+    const prefix = manifestPath || '';
     const fetchFile = async (relativePath) => {
-      const res = await this._fetchGitHubRaw(owner, repo, relativePath, foundBranch, tok);
+      const fullPath = prefix ? `${prefix}${relativePath}` : relativePath;
+      const res = await this._fetchGitHubRaw(owner, repo, fullPath, foundBranch, tok);
       if (res.status !== 200) {
-        throw new RegistryError(`File not found in ${owner}/${repo}: ${relativePath} (HTTP ${res.status})`);
+        throw new RegistryError(`File not found in ${owner}/${repo}: ${fullPath} (HTTP ${res.status})`);
       }
       return res.body;
     };
@@ -162,13 +177,14 @@ class Registry {
     return { manifest, fetchFile };
   }
 
-  async resolve(source) {
+  async resolve(source, opts = {}) {
     const parsed = this._parseSource(source);
+    const subfolder = opts.plugin || null;
     switch (parsed.type) {
       case 'github':
-        return this._resolveGitHub(parsed.owner, parsed.repo);
+        return this._resolveGitHub(parsed.owner, parsed.repo, null, subfolder);
       case 'local':
-        return this._resolveLocal(parsed.path);
+        return this._resolveLocal(subfolder ? path.join(parsed.path, subfolder) : parsed.path);
       case 'alias':
         return this._resolveAlias(parsed.alias, parsed.name);
       default:
@@ -177,9 +193,85 @@ class Registry {
   }
 
   async listPlugins(source) {
-    const { manifest, fetchFile } = await this.resolve(source);
-    // Single-plugin repo
+    const parsed = this._parseSource(source);
+    if (parsed.type === 'github') {
+      return this._listGitHubPlugins(parsed.owner, parsed.repo);
+    }
+    if (parsed.type === 'local') {
+      return this._listLocalPlugins(parsed.path);
+    }
+    // fallback: single plugin
+    const { manifest } = await this.resolve(source);
     return [{ name: manifest.name, description: manifest.description, version: manifest.version }];
+  }
+
+  async _listGitHubPlugins(owner, repo) {
+    // Use GitHub API to list root directory contents
+    const tok = this.token;
+    const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/`;
+    const opts = {
+      hostname: 'api.github.com',
+      path: `/repos/${owner}/${repo}/contents/`,
+      headers: { 'User-Agent': 'proctl/0.1.0', 'Accept': 'application/vnd.github.v3+json' }
+    };
+    if (tok) opts.headers['Authorization'] = `token ${tok}`;
+
+    const res = await new Promise((resolve, reject) => {
+      https.get(opts, r => {
+        const chunks = [];
+        r.on('data', c => chunks.push(c));
+        r.on('end', () => resolve({ status: r.statusCode, body: Buffer.concat(chunks) }));
+      }).on('error', reject);
+    });
+
+    if (res.status !== 200) {
+      // fallback: treat as single-plugin
+      const { manifest } = await this._resolveGitHub(owner, repo);
+      return [{ name: manifest.name, description: manifest.description, version: manifest.version }];
+    }
+
+    let entries;
+    try { entries = JSON.parse(res.body.toString('utf8')); } catch { entries = []; }
+
+    const dirs = entries.filter(e => e.type === 'dir');
+    const plugins = [];
+
+    // Check root plugin.json first
+    try {
+      const { manifest } = await this._resolveGitHub(owner, repo, null, null);
+      plugins.push({ name: manifest.name, description: manifest.description, version: manifest.version });
+      return plugins; // root plugin.json = single-plugin repo
+    } catch { /* no root plugin.json, check subdirs */ }
+
+    for (const dir of dirs) {
+      try {
+        const { manifest } = await this._resolveGitHub(owner, repo, null, dir.name);
+        plugins.push({ name: dir.name, pluginName: manifest.name, description: manifest.description, version: manifest.version });
+      } catch { /* no plugin.json in this dir */ }
+    }
+
+    return plugins;
+  }
+
+  _listLocalPlugins(dirPath) {
+    const absDir = path.resolve(dirPath);
+    const rootManifest = path.join(absDir, 'plugin.json');
+    if (fs.existsSync(rootManifest)) {
+      const m = JSON.parse(fs.readFileSync(rootManifest, 'utf8'));
+      return [{ name: m.name, description: m.description, version: m.version }];
+    }
+    const plugins = [];
+    for (const entry of fs.readdirSync(absDir, { withFileTypes: true })) {
+      if (!entry.isDirectory()) continue;
+      const mPath = path.join(absDir, entry.name, 'plugin.json');
+      if (fs.existsSync(mPath)) {
+        try {
+          const m = JSON.parse(fs.readFileSync(mPath, 'utf8'));
+          plugins.push({ name: entry.name, pluginName: m.name, description: m.description, version: m.version });
+        } catch { /* skip */ }
+      }
+    }
+    return plugins;
   }
 
   addRegistry(alias, url, token) {
