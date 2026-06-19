@@ -32,40 +32,50 @@ Azure Container Apps. Regulatory industry (contact center / collections — FDCP
 `C:\Users\yethu.krishnan\OneDrive - Provana India Pvt. Ltd\Documents\Provana_Projects\provana-plugins\`
 
 ```
-provana-plugins/
-├── scratchpad/          ← spec files (SKILL.md, architecture.md, etc.) — READ THESE FIRST
-│   ├── SKILL.md         ← primary build spec for proctl CLI
-│   ├── architecture.md  ← module-by-module API specs
-│   ├── agent-targets.md ← Claude Code + Copilot config formats
-│   ├── cli-spec.md      ← full CLI argument spec, all subcommands
-│   ├── manifest-schema.md ← plugin.json schema + validation rules
-│   ├── plugin.json      ← template for proctl init
-│   ├── provana-ecosystem.md ← full plugin catalogue (what plugins exist / planned)
-│   └── conversation.md  ← THIS FILE
+provana-plugins/                  ← GitHub: 109628/provana-plugins
+├── core/                         ← provana-core plugin
+│   ├── plugin.json
+│   ├── skills/git-workflow/
+│   ├── skills/api-design/
+│   └── hooks/dangerous-bash-guard.ps1
 │
-├── proctl/              ← the CLI tool (built, tested, ready to use)
-│   ├── bin/proctl.js    ← CLI entry point (Commander.js)
+├── design/                       ← provana-design plugin
+│   ├── plugin.json
+│   ├── skills/ui-ux/
+│   ├── skills/design-system/
+│   └── skills/ui-styling/
+│
+├── proctl/                       ← CLI tool (npm: @109628/proctl)
+│   ├── bin/proctl.js             ← Commander.js entry point
 │   ├── lib/
-│   │   ├── settings.js  ← atomic JSON read/write/backup
-│   │   ├── state.js     ← ~/.claude/proctl/state.json tracker
-│   │   ├── manifest.js  ← plugin.json parser + validator
-│   │   ├── registry.js  ← GitHub fetcher + local + named registry
-│   │   ├── installer.js ← orchestrator
-│   │   ├── ui.js        ← inquirer interactive prompts
+│   │   ├── settings.js           ← atomic JSON read/write/backup
+│   │   ├── state.js              ← ~/.claude/proctl/state.json tracker
+│   │   ├── manifest.js           ← plugin.json parser + validator
+│   │   ├── registry.js           ← GitHub fetcher + local + named registry + subfolder lookup
+│   │   ├── installer.js          ← orchestrator
+│   │   ├── ui.js                 ← inquirer interactive prompts
 │   │   ├── agents/
-│   │   │   ├── claude-code.js  ← full adapter (skills/MCP/hooks/commands/statusline)
-│   │   │   ├── copilot.js      ← skills + MCP only
-│   │   │   └── index.js        ← adapter lookup, 'claude' → 'claude-code' alias
+│   │   │   ├── claude-code.js    ← full adapter (skills/MCP/hooks/commands/statusline)
+│   │   │   ├── copilot.js        ← skills + MCP only
+│   │   │   └── index.js          ← adapter lookup, 'claude' → 'claude-code' alias
 │   │   └── components/
 │   │       ├── skills.js
 │   │       ├── mcp.js
 │   │       ├── hooks.js
 │   │       ├── commands.js
 │   │       └── statusline.js
-│   └── package.json
+│   ├── package.json              ← @109628/proctl, publishConfig → GitHub Packages
+│   └── .npmrc                    ← @109628 → npm.pkg.github.com
 │
-└── plugins/             ← local copies of plugin repos before GitHub push
-    └── provana-core/    ← first plugin (already pushed to GitHub)
+└── scratchpad/                   ← spec files — READ THESE FIRST
+    ├── SKILL.md                  ← primary build spec for proctl CLI
+    ├── architecture.md           ← module-by-module API specs
+    ├── agent-targets.md          ← Claude Code + Copilot config formats
+    ├── cli-spec.md               ← full CLI argument spec, all subcommands
+    ├── manifest-schema.md        ← plugin.json schema + validation rules
+    ├── plugin.json               ← template for proctl init
+    ├── provana-ecosystem.md      ← full plugin catalogue (what exists / planned)
+    └── conversation.md           ← THIS FILE
 ```
 
 ---
@@ -141,6 +151,114 @@ existing user hooks preserved after install           ✓
 - Standalone `skill add` uses filename stem as skill name (`test-standalone.md` → `test-standalone`)
 - `proctl hook remove <name>` shortcut not yet built — workaround: `proctl remove __standalone__hook__<name>`
 - Initial git branch was `master`, force-renamed to `main` before push — clean
+
+---
+
+## Restructure to monorepo — COMPLETED (2026-06-19)
+
+Moved from separate `109628/provana-core` repo to monorepo `109628/provana-plugins`.
+
+**Structure now:**
+```
+provana-plugins/
+├── core/           ← provana-core plugin (was separate repo, now subfolder)
+├── proctl/         ← CLI tool
+└── scratchpad/     ← spec files
+```
+
+**Install command changed:**
+- Old: `proctl add 109628/provana-core`
+- New: `proctl add 109628/provana-plugins --plugin core`
+
+**proctl fixes made:**
+- `registry.js`: `resolve(source, { plugin })` now looks for `<plugin>/plugin.json` in GitHub
+- `installer.js`: passes `pluginFilter` to `registry.resolve`, stores `plugin` field in state
+- `registry.listPlugins()`: uses GitHub API to scan subdirs for multi-plugin repos
+
+**Old repo:** `109628/provana-core` — archived (read-only)
+
+---
+
+## provana-design plugin — COMPLETED (2026-06-19)
+
+3 skills built for Provana engineering teams' UI/UX gap.
+
+**Install:** `proctl add 109628/provana-plugins --plugin design`
+
+| Skill | Covers |
+|---|---|
+| `ui-ux` | Accessibility, data tables/dashboards, forms, typography, animation, trust/compliance UX (DNC, FDCPA, consent visibility), pre-delivery checklist |
+| `design-system` | 3-layer tokens (primitive→semantic→component), Tailwind config, component state specs, hardcoded-value audit commands |
+| `ui-styling` | shadcn/ui component guide, TanStack Table pattern, react-hook-form+zod form pattern, dark mode, responsive utilities, anti-patterns |
+
+**Provana-specific additions vs reference (nextlevelbuilder/ui-ux-pro-max-skill):**
+- Regulatory UX rules: DNC badges, FDCPA time warnings, consent status visibility
+- Data table rules tuned for agent/call data (tabular-nums, sticky headers, empty states)
+- shadcn/ui + Next.js App Router specifics (not generic)
+- Supervisor vs Agent role differentiation in UI
+
+---
+
+## Monorepo restructure — COMPLETED (2026-06-19)
+
+Updated project structure:
+```
+provana-plugins/
+├── core/       ← git-workflow, api-design, bash guard
+├── design/     ← ui-ux, design-system, ui-styling
+├── proctl/     ← CLI tool
+└── scratchpad/ ← spec files
+```
+
+---
+
+## proctl published to GitHub Packages — COMPLETED (2026-06-19)
+
+**Package:** `@109628/proctl@0.1.0`
+**Registry:** https://npm.pkg.github.com
+**Access:** restricted (proprietary)
+
+### What was required to publish
+- `package.json` scoped name: `@109628/proctl`
+- `publishConfig.registry`: `https://npm.pkg.github.com`
+- `publishConfig.access`: `"restricted"`
+- `proctl/.npmrc`: `@109628:registry=https://npm.pkg.github.com`
+- GitHub PAT with `write:packages` + `repo` scopes
+- `npm login --registry=https://npm.pkg.github.com --scope=@109628`
+- `npm publish` from inside `proctl/` directory
+
+### Team onboarding (new member setup)
+
+1. Generate GitHub PAT → github.com/settings/tokens
+   - Scope: `read:packages` only
+2. Add to `~/.npmrc`:
+   ```
+   @109628:registry=https://npm.pkg.github.com
+   //npm.pkg.github.com/:_authToken=THEIR_PAT
+   ```
+3. Install:
+   ```bash
+   npm install -g @109628/proctl
+   proctl --version
+   ```
+
+### Future releases (publisher)
+```bash
+npm version patch   # or minor / major
+npm publish
+git push
+```
+
+### Team updates
+```bash
+npm install -g @109628/proctl@latest
+```
+
+### Auth summary
+| Role | PAT scopes needed |
+|---|---|
+| Publisher (Yethu) | `write:packages` + `repo` |
+| Installer (team) | `read:packages` only |
 
 ---
 
