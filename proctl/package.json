@@ -1,0 +1,17 @@
+{
+  "name": "proctl",
+  "version": "0.1.0",
+  "description": "Provana plugin manager for AI coding agents",
+  "license": "MIT",
+  "bin": {
+    "proctl": "bin/proctl.js"
+  },
+  "main": "lib/index.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "commander": "^12.0.0",
+    "inquirer": "^9.0.0"
+  }
+}

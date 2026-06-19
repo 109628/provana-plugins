@@ -1,0 +1,22 @@
+{
+  "name": "{{name}}",
+  "version": "0.1.0",
+  "description": "{{description}}",
+  "author": "{{author}}",
+  "license": "MIT",
+  "repository": "{{author}}/{{name}}",
+
+  "components": {
+    "skills": {
+      "example-skill": {
+        "path": "skills/example-skill",
+        "description": "Example skill. Use when you need to demonstrate the plugin structure."
+      }
+    }
+  },
+
+  "agents": {
+    "claude-code": { "supported": true },
+    "copilot": { "supported": true, "skills_only": true }
+  }
+}

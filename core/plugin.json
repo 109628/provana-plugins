@@ -1,0 +1,33 @@
+{
+  "name": "provana-core",
+  "version": "1.0.0",
+  "description": "Provana core skills and safety hooks for all engineering projects",
+  "author": "109628",
+  "license": "MIT",
+  "repository": "109628/provana-plugins",
+  "components": {
+    "skills": {
+      "git-workflow": {
+        "path": "skills/git-workflow",
+        "description": "Conventional commits, PR descriptions, branch naming conventions for Provana projects"
+      },
+      "api-design": {
+        "path": "skills/api-design",
+        "description": "REST API design, OpenAPI spec writing, versioning, and error schemas"
+      }
+    },
+    "hooks": {
+      "dangerous-bash-guard": {
+        "event": "PreToolUse",
+        "script": "hooks/dangerous-bash-guard.ps1",
+        "matcher": "Bash",
+        "async": false,
+        "description": "Block destructive shell commands (rm -rf, git reset --hard, etc.) before execution"
+      }
+    }
+  },
+  "agents": {
+    "claude-code": { "supported": true },
+    "copilot": { "supported": true, "skills_only": true }
+  }
+}
