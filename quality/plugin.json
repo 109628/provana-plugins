@@ -1,0 +1,32 @@
+{
+  "name": "provana-quality",
+  "version": "1.0.0",
+  "description": "Pre-commit code review, test coverage enforcement, and quality gates for Provana engineering teams",
+  "author": "109628",
+  "license": "UNLICENSED",
+  "repository": "109628/provana-plugins",
+  "components": {
+    "skills": {
+      "code-review": {
+        "path": "skills/code-review",
+        "description": "E2E code review checklist covering correctness, security, performance, naming, test coverage, and language-specific rules (Python/FastAPI, TypeScript/Next.js, SQL). Use before creating a PR or when reviewing someone else's code."
+      },
+      "test-coverage": {
+        "path": "skills/test-coverage",
+        "description": "Test coverage strategy and patterns for Python (pytest) and TypeScript/JavaScript (jest/vitest). Coverage thresholds, what to test vs mock, integration vs unit. Use when writing tests or reviewing test quality."
+      }
+    },
+    "hooks": {
+      "pre-commit-quality-gate": {
+        "event": "UserPromptSubmit",
+        "script": "hooks/pre-commit-quality-gate.ps1",
+        "async": false,
+        "description": "Intercepts commit-related prompts and runs quality checks: lint, type check, test run. Blocks commit if checks fail. Claude Code only."
+      }
+    }
+  },
+  "agents": {
+    "claude-code": { "supported": true },
+    "copilot": { "supported": true, "skills_only": true }
+  }
+}
