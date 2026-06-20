@@ -1,0 +1,40 @@
+{
+  "name": "provana-data",
+  "version": "1.0.0",
+  "description": "Data engineering skills for Provana — Databricks, Delta Lake, CDC pipelines, data quality, SQL analytics",
+  "author": "109628",
+  "license": "UNLICENSED",
+  "repository": "109628/provana-plugins",
+  "components": {
+    "skills": {
+      "databricks-patterns": {
+        "path": "skills/databricks-patterns",
+        "description": "Databricks workspace — Delta Lake tables, notebooks, jobs, clusters, Unity Catalog, Spark optimization. Use when building or debugging Databricks pipelines, Delta tables, or job orchestration."
+      },
+      "cdc-patterns": {
+        "path": "skills/cdc-patterns",
+        "description": "Change Data Capture — Debezium setup, Delta Lake CDC, streaming ingestion, schema evolution, exactly-once semantics. Use when implementing real-time data sync or event-driven pipelines."
+      },
+      "data-quality": {
+        "path": "skills/data-quality",
+        "description": "Data quality — freshness checks, completeness validation, anomaly detection, Great Expectations patterns, Delta constraints. Use when building data validation, monitoring, or SLA checks."
+      },
+      "sql-analytics": {
+        "path": "skills/sql-analytics",
+        "description": "Advanced SQL for analytics — window functions, CTEs, query optimization, Spark SQL patterns, PostgreSQL analytics. Use when writing complex analytical queries or optimizing slow queries."
+      }
+    },
+    "mcp_servers": {
+      "databricks": {
+        "type": "stdio",
+        "command": "databricks",
+        "args": ["mcp", "start"],
+        "description": "Official Databricks MCP server. Provides tools for querying Delta tables, managing clusters, triggering jobs, Unity Catalog access. Requires Databricks CLI configured with workspace URL and token."
+      }
+    }
+  },
+  "agents": {
+    "claude-code": { "supported": true },
+    "copilot": { "supported": true, "skills_only": false }
+  }
+}
