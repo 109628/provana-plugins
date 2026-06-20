@@ -1,0 +1,40 @@
+{
+  "name": "provana-ado",
+  "version": "1.0.0",
+  "description": "Azure DevOps MCP server and workflow skills for Provana engineering teams",
+  "author": "109628",
+  "license": "UNLICENSED",
+  "repository": "109628/provana-plugins",
+  "components": {
+    "skills": {
+      "ado-work-items": {
+        "path": "skills/ado-work-items",
+        "description": "Azure DevOps work items — creating, updating, linking to PRs, sprint planning, queries. Use when managing backlog, creating tasks, updating status, or planning sprints in Azure DevOps."
+      },
+      "ado-repositories": {
+        "path": "skills/ado-repositories",
+        "description": "Azure DevOps repos — PR creation, branch policies, code review workflow, Provana branching conventions. Use when creating PRs, reviewing code, or working with ADO Git repos."
+      }
+    },
+    "mcp_servers": {
+      "azure_devops": {
+        "type": "stdio",
+        "command": "npx",
+        "args": [
+          "-y",
+          "@azure-devops/mcp",
+          "provanadev",
+          "-d",
+          "core",
+          "repositories",
+          "work-items"
+        ],
+        "description": "Azure DevOps MCP server — org: provanadev. Provides tools for work items, repositories, and core project operations. Authentication handled by user (Azure CLI or PAT)."
+      }
+    }
+  },
+  "agents": {
+    "claude-code": { "supported": true },
+    "copilot": { "supported": true, "skills_only": false }
+  }
+}
