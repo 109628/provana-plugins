@@ -1,6 +1,6 @@
 {
   "name": "@109628/proctl",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Provana plugin manager for AI coding agents",
   "license": "UNLICENSED",
   "private": false,
@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/109628/provana-plugins.git",
+    "url": "git+https://github.com/109628/provana-plugins.git",
     "directory": "proctl"
   },
   "bin": {

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "project": {
+      "value": "REPLACE_PROJECT_NAME"
+    },
+    "environment": {
+      "value": "dev"
+    },
+    "location": {
+      "value": "eastus2"
+    },
+    "imageTag": {
+      "value": "latest"
+    },
+    "customDomain": {
+      "value": ""
+    },
+    "alertEmail": {
+      "value": "REPLACE_ALERT_EMAIL"
+    }
+  }
+}

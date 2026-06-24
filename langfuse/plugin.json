@@ -1,0 +1,20 @@
+{
+  "name": "provana-langfuse",
+  "version": "1.0.0",
+  "description": "Langfuse integration for Provana — prompt migration, tracing patterns, and LLM observability",
+  "author": "109628",
+  "license": "UNLICENSED",
+  "repository": "109628/provana-plugins",
+  "components": {
+    "skills": {
+      "provana-langfuse-prompts": {
+        "path": "skills/provana-langfuse-prompts",
+        "description": "Migrate hardcoded prompts from any Provana service to Langfuse prompt management. Creates Dev + QA versions under the standard naming convention and generates a prompt_service.py fetch helper. Use when user says 'migrate prompts to Langfuse', 'move prompts to Langfuse', or 'create Langfuse prompts for this service'."
+      }
+    }
+  },
+  "agents": {
+    "claude-code": { "supported": true },
+    "copilot": { "supported": true, "skills_only": true }
+  }
+}

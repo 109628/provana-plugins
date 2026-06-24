@@ -76,6 +76,10 @@ class Registry {
       }
       return { type: 'github', owner: parts[0], repo: parts[1] };
     }
+    // Bare plugin name (e.g. "core") → default Provana registry
+    if (parts.length === 1 && /^[a-z][a-z0-9-]*$/.test(source)) {
+      return { type: 'github', owner: '109628', repo: 'provana-plugins', impliedPlugin: source };
+    }
     throw new RegistryError(`Cannot parse source: "${source}"`);
   }
 
@@ -179,7 +183,7 @@ class Registry {
 
   async resolve(source, opts = {}) {
     const parsed = this._parseSource(source);
-    const subfolder = opts.plugin || null;
+    const subfolder = opts.plugin || parsed.impliedPlugin || null;
     switch (parsed.type) {
       case 'github':
         return this._resolveGitHub(parsed.owner, parsed.repo, null, subfolder);

@@ -1,0 +1,114 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/skill-router.sh",
+            "description": "Classify session phase and domain, write context routing recommendation"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/secrets-scanner.sh",
+            "description": "Block bash commands that would expose secrets or credentials"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/injection-detector.sh",
+            "description": "Detect prompt injection patterns in file content being written"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/post-test.sh",
+            "description": "If the bash command was pytest, gate merge on test/QC verdict"
+          }
+        ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/doc-drift.sh",
+            "description": "Detect when code diverges from spec docs"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/mem-compile.sh",
+            "description": "Compile session memory to project knowledge base on session end"
+          },
+          {
+            "type": "command",
+            "command": "bash hooks/board-sync.sh",
+            "description": "Sync Azure Board task statuses on session end"
+          },
+          {
+            "type": "command",
+            "command": "rm -f /tmp/provana-session-state.json /tmp/provana-skill-route.md",
+            "description": "Clear session context state files on session end (/tmp works under Git Bash on Windows; Phase 4 port to Python will generalize)"
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/sre-runbook-gen.sh",
+            "description": "Self-gated: auto-generate SRE runbook stub if notification text matches sre_alert/production_incident"
+          },
+          {
+            "type": "command",
+            "command": "bash hooks/llmops-alert.sh",
+            "description": "Self-gated: trigger LLMOps alert triage if notification matches llmops_alert/token_cost/model_drift/hallucination"
+          },
+          {
+            "type": "command",
+            "command": "bash hooks/arch-notify.sh",
+            "description": "Self-gated: notify when architectural decisions are detected in notification text"
+          }
+        ]
+      }
+    ]
+  },
+  "_version": "1.7.0-dev",
+  "_plugin": "provana-superpowers",
+  "_notes": [
+    "Hook events use Claude Code's documented names: SessionStart, PreToolUse, PostToolUse, SessionEnd, Notification, Stop, SubagentStop, PreCompact, UserPromptSubmit.",
+    "Git pre-commit is wired into .git/hooks/pre-commit by project-init (not a Claude Code hook event).",
+    "skill-router runs on SessionStart — classifies phase/domain, writes the route file to the OS temp dir.",
+    "secrets-scanner runs PreToolUse:Bash — must read the tool_input.command from stdin JSON, NOT $BASH_COMMAND.",
+    "injection-detector runs PreToolUse:Edit|Write — inspects the file content being written, not a repo-wide scan.",
+    "post-test runs PostToolUse:Bash but must self-gate to only act when the executed command was pytest.",
+    "doc-drift runs PostToolUse:Edit|Write to catch spec divergence on every file edit.",
+    "mem-compile + board-sync + state cleanup run SessionEnd (not Stop — Stop fires per-turn).",
+    "Notification hooks self-gate on the notification message text since Claude Code does not regex-match Notification matchers."
+  ]
+}

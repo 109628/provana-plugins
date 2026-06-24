@@ -1,0 +1,14 @@
+{
+  "name": "provana-local",
+  "owner": {
+    "name": "Provana Core AI team"
+  },
+  "description": "Local development marketplace for Provana plugins",
+  "plugins": [
+    {
+      "name": "provana-superpowers",
+      "source": "./",
+      "description": "Provana AI-Native Delivery + system design + QA automation."
+    }
+  ]
+}

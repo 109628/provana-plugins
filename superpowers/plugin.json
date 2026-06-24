@@ -1,0 +1,120 @@
+{
+  "name": "provana-superpowers",
+  "version": "1.7.0",
+  "description": "Provana AI-Native Delivery — system design, QA automation, Azure cloud architecture, voice/doc pipeline scaffolds, parallel orchestration, agentic SRE/LLMOps runbooks, and tool-forge. 26 skills covering full SDLC from discovery to production.",
+  "author": "Provana Core AI team",
+  "license": "UNLICENSED",
+  "repository": "109628/provana-plugins",
+  "components": {
+    "skills": {
+      "provana-bootstrap": {
+        "path": "skills/provana-bootstrap",
+        "description": "Every new session start — bootstraps AI-Native Delivery Model context"
+      },
+      "bmad-discovery": {
+        "path": "skills/bmad-discovery",
+        "description": "New feature / product requirement discovery"
+      },
+      "writing-provana-plans": {
+        "path": "skills/writing-provana-plans",
+        "description": "Writing a delivery plan"
+      },
+      "subagent-driven-delivery": {
+        "path": "skills/subagent-driven-delivery",
+        "description": "Orchestrating implementation with subagents"
+      },
+      "provana-tdd": {
+        "path": "skills/provana-tdd",
+        "description": "Rigid TDD — RED → GREEN → REFACTOR → COMMIT for all code"
+      },
+      "conv-ai-scaffold": {
+        "path": "skills/conv-ai-scaffold",
+        "description": "Pod 1: Conv.AI / LiveKit / voice pipeline scaffolding"
+      },
+      "doc-pipeline-scaffold": {
+        "path": "skills/doc-pipeline-scaffold",
+        "description": "Pod 2: Doc.AI / extraction pipeline scaffolding"
+      },
+      "bpm-discovery": {
+        "path": "skills/bpm-discovery",
+        "description": "Pod 3: BPM / process automation discovery"
+      },
+      "agent-qc-harness": {
+        "path": "skills/agent-qc-harness",
+        "description": "QA verification of agent output"
+      },
+      "mid-sprint-change": {
+        "path": "skills/mid-sprint-change",
+        "description": "Requirements changed mid-sprint handling"
+      },
+      "requesting-provana-review": {
+        "path": "skills/requesting-provana-review",
+        "description": "Code ready for PR review"
+      },
+      "finishing-provana-branch": {
+        "path": "skills/finishing-provana-branch",
+        "description": "Sprint done / handoff to engineering"
+      },
+      "agentic-sre-runbook": {
+        "path": "skills/agentic-sre-runbook",
+        "description": "Production incident response"
+      },
+      "llmops-alert-response": {
+        "path": "skills/llmops-alert-response",
+        "description": "Token/cost/drift/hallucination alert handling"
+      },
+      "azure-deployment": {
+        "path": "skills/azure-deployment",
+        "description": "Deploy to Azure — containers, functions, storage, postgres, DNS"
+      },
+      "azure-cloud-design": {
+        "path": "skills/azure-cloud-design",
+        "description": "Azure service selection / architecture"
+      },
+      "vector-db-design": {
+        "path": "skills/vector-db-design",
+        "description": "Vector DB / RAG / embeddings design"
+      },
+      "event-driven-design": {
+        "path": "skills/event-driven-design",
+        "description": "Event-driven / distributed systems design"
+      },
+      "qa-automation": {
+        "path": "skills/qa-automation",
+        "description": "Playwright / desktop / UI / regression tests"
+      },
+      "voice-pipeline-eval": {
+        "path": "skills/voice-pipeline-eval",
+        "description": "Voice bot / STT / TTS / conversation flow QA"
+      },
+      "tool-forge": {
+        "path": "skills/tool-forge",
+        "description": "Domain gap — need a new tool"
+      },
+      "context-manager": {
+        "path": "skills/context-manager",
+        "description": "Context bloat / manual context audit"
+      },
+      "project-init": {
+        "path": "skills/project-init",
+        "description": "New project from zero — git, Azure RG, context wiring"
+      },
+      "azure-cicd": {
+        "path": "skills/azure-cicd",
+        "description": "Azure DevOps pipeline YAML — build → test → deploy"
+      },
+      "parallel-build": {
+        "path": "skills/parallel-build",
+        "description": "Solo dev: parallel worktrees + subagent orchestration"
+      },
+      "team-collaboration": {
+        "path": "skills/team-collaboration",
+        "description": "Multi-dev: FE + BE + AI engineer working without interference"
+      }
+    }
+  },
+  "agents": {
+    "claude-code": { "supported": true },
+    "copilot": { "supported": true, "skills_only": true }
+  }
+}

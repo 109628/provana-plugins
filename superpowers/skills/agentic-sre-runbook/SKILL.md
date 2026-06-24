@@ -1,0 +1,165 @@
+---
+name: agentic-sre-runbook
+description: Use when a Provana AI system has a production incident, alert, or anomaly. Runs 4-phase systematic root cause analysis, generates incident runbook, coordinates with Engineering SRE on shared infra, and drafts blameless postmortem. Trigger on "production incident", "agent is down", "SLO breach", "alert fired", "something is broken in prod", "the agent is hallucinating", "latency spike", "accuracy dropped", "the bot isn't working", "production issue", or any signal that a live Provana AI product is behaving incorrectly.
+---
+
+# Agentic SRE Runbook
+
+Production incident response for Provana's AI systems. The Agentic SRE function is embedded in the Core AI team — it handles AI-specific incidents (non-determinism, model drift, hallucination, latency) that Engineering SRE doesn't have the domain knowledge to diagnose.
+
+**Announce at start:** "Running agentic-sre-runbook. Starting incident response."
+
+## Incident triage
+
+### Classify the incident type first
+
+| Type | Indicators | Owner |
+|------|-----------|-------|
+| **AI quality** | Hallucination, wrong intents, extraction errors, SLO breach | Agentic SRE |
+| **Infrastructure** | Service down, network, database, Azure Devops pipeline | Engineering SRE (coordinate) |
+| **Model drift** | Accuracy degrading over time, not a spike | LLMOps + MLOps |
+| **Cost spike** | Token spend anomaly | LLMOps |
+| **Data quality** | Bad input causing bad output | Agentic SRE + PM/QA |
+
+### Severity
+
+| Severity | Definition | Response time |
+|----------|-----------|---------------|
+| P0 | Product fully down or actively harming users | Immediate |
+| P1 | SLO breach affecting >20% of requests | <30 min |
+| P2 | Quality degradation, still functional | <2 hours |
+| P3 | Anomaly, not yet impacting users | Next working day |
+
+## 4-phase root cause analysis
+
+### Phase 1: Reproduce
+
+Do not theorise yet. Reproduce the exact failing behaviour:
+
+```bash
+# Pull recent logs for the affected agent/pipeline
+az monitor log-analytics query \
+  --workspace [workspace-id] \
+  --analytics-query "
+    traces
+    | where timestamp > ago(1h)
+    | where customDimensions.service == '[service-name]'
+    | where severityLevel >= 2
+    | order by timestamp desc
+    | take 100
+  "
+```
+
+Capture:
+- Exact input that caused the failure
+- Exact output produced
+- Timestamp range
+- Whether it's consistent or intermittent
+
+### Phase 2: Isolate
+
+Narrow the fault domain:
+
+**For Conv.AI incidents:**
+- Is it STT (transcription), LLM (intent/response), or TTS (synthesis)?
+- Run `python tools/pipeline_diagnostics.py --stage [stt|llm|tts]` to isolate
+
+**For Doc.AI incidents:**
+- Is it ingest (file read), parse (layout), extract (field mapping), or store (output)?
+- Run `python tools/extraction_diagnostics.py --pipeline [name]` with a failing document
+
+**For BPM incidents:**
+- Is it the SOP lookup, the deterministic rule engine, or the judgment escalation path?
+- Run `python tools/bpm_trace.py --case-id [case_id]`
+
+### Phase 3: Diagnose
+
+Identify root cause with evidence. Do not guess. Use:
+
+- Observability config (`observability-config.md` in the project repo)
+- LLMOps dashboards for token cost and context window tracking
+- Model version logs (prompt version control in LLMOps)
+- Recent deployment history: what changed in the last 24h?
+
+Common root causes:
+
+| Symptom | Likely root cause | Check |
+|---------|------------------|-------|
+| Intent accuracy drop | Prompt version changed | `llmops/prompt_versions.log` |
+| Hallucination spike | Model version changed or context window overflow | Model version log, context size |
+| Latency spike | Context window too large, or external API slow | Token count per request, API latency |
+| Extraction accuracy drop | New document format not in training set | Doc type classification, schema version |
+| BPM wrong escalation | SOP version mismatch | SOP version in agent config |
+
+### Phase 4: Fix
+
+Apply the fix. Use `provana-superpowers:provana-tdd` if code changes are required (even for hotfixes).
+
+For prompt/config changes: test on staging before production. Run `agent-qc-harness` against the fix.
+
+For model rollback: coordinate with LLMOps. Document in `docs/decisions.md`.
+
+For infra changes: coordinate with Engineering SRE. Do not touch shared infra unilaterally.
+
+## Incident communication
+
+```markdown
+## Incident Update — [Severity] — [Product Name]
+**Time:** [timestamp]
+**Status:** [Investigating | Identified | Mitigating | Resolved]
+
+**Impact:** [what users/operations are affected]
+**Timeline:**
+- [time]: Incident detected
+- [time]: Root cause identified
+- [time]: Fix applied
+
+**Current action:** [what is happening now]
+**ETA:** [estimated resolution if not resolved]
+
+**Contact:** [Agentic SRE lead name]
+```
+
+Send to: [Provana incident channel] and the affected pod's PM/QA lead.
+
+## Blameless postmortem
+
+Run within 24 hours of resolution. Generated by `sre-runbook-gen.sh` hook, reviewed by Agentic SRE:
+
+```markdown
+# Postmortem — [Incident ID] — [Product Name]
+
+## Summary
+[2-3 sentences: what happened, how it was fixed]
+
+## Timeline
+[Full timeline with timestamps]
+
+## Root cause
+[Technical root cause — precise, no blame]
+
+## Contributing factors
+[What made this incident possible, not who caused it]
+
+## Impact
+[Quantified: users affected, duration, SLO delta]
+
+## Action items
+| Item | Owner | Due date | Priority |
+|------|-------|----------|---------|
+| Add test for [scenario] | Tech FDE | [date] | P1 |
+| Update observability config | Core AI | [date] | P2 |
+
+## What went well
+[Things that helped contain or resolve the incident]
+```
+
+Save to `docs/postmortems/[incident-id]-[date].md` and share with Engineering SRE for shared infra items.
+
+## Coordination with Engineering SRE
+
+Agentic SRE owns AI-specific incidents. Engineering SRE owns infrastructure incidents. Coordination boundary:
+
+- Shared pipelines: joint incident bridge
+- LLMOps runbooks: Agentic SRE provides, Engineering SRE executes
+- Escalation from Engineering SRE to Agentic SRE: when the root cause is in the AI layer

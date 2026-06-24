@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ops-ai-canvas",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "../ops-ai-canvas"],
+      "port": 3000,
+      "autoPort": true
+    }
+  ]
+}

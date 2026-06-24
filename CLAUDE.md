@@ -8,7 +8,7 @@ Two things live here:
 2. Plugin folders (`core/`, `design/`, `ado/`, `quality/`, `data/`) — the actual plugins
 
 GitHub: https://github.com/109628/provana-plugins
-npm: `@109628/proctl` on GitHub Packages
+npm: `@109628/proctl` on GitHub Packages (private — Provana internal only)
 
 ---
 
@@ -16,11 +16,12 @@ npm: `@109628/proctl` on GitHub Packages
 
 ```
 provana-plugins/
-├── proctl/              ← CLI tool (Node.js, published to GitHub Packages)
+├── proctl/              ← CLI tool (Node.js, published to GitHub Packages as @109628/proctl)
 │   ├── bin/proctl.js    ← Commander.js entry point
 │   ├── lib/
 │   │   ├── registry.js  ← GitHub raw fetcher + local resolver + named registry
 │   │   │                   IMPORTANT: resolve(source, {plugin}) for subfolder lookup
+│   │   │                   Bare name (e.g. "core") auto-resolves to 109628/provana-plugins
 │   │   ├── installer.js ← orchestrator — passes pluginFilter to registry.resolve
 │   │   ├── manifest.js  ← plugin.json parser + validator
 │   │   ├── settings.js  ← atomic JSON read/write/backup for settings files
@@ -120,9 +121,13 @@ Hooks are `.ps1` (PowerShell — Windows). Registered as `powershell -File "<abs
 ## proctl CLI commands
 
 ```bash
-proctl add 109628/provana-plugins --plugin core           # full plugin
-proctl add 109628/provana-plugins --plugin core --only skills  # skills only
-proctl add 109628/provana-plugins --plugin core -a copilot    # copilot target
+# Short form (default registry = 109628/provana-plugins)
+proctl add core                                           # full plugin
+proctl add core --only skills                             # skills only
+proctl add core -a copilot                                # copilot target
+
+# Explicit form (other repos or overrides)
+proctl add 109628/provana-plugins --plugin core           # same as above, explicit
 proctl list                                               # installed plugins
 proctl list --available 109628/provana-plugins            # browse registry
 proctl remove provana-core                                # remove plugin
@@ -145,6 +150,8 @@ proctl init <name>                                        # scaffold new plugin
 | provana-ado | `ado/` | 1.1.0 | ado-work-items, ado-repositories | azure_devops | — | Both |
 | provana-quality | `quality/` | 1.0.0 | code-review, test-coverage | — | pre-commit-quality-gate | Claude only for hooks |
 | provana-data | `data/` | 1.0.0 | databricks-patterns, cdc-patterns, data-quality, sql-analytics | databricks | — | Both |
+| provana-langfuse | `langfuse/` | 1.0.0 | provana-langfuse-prompts | — | — | Both |
+| provana-superpowers | `superpowers/` | 1.7.0 | 26 skills: TDD, Azure design, QA automation, SRE runbooks, parallel orchestration, voice/doc scaffolds | — | — | Claude only |
 
 ---
 
@@ -186,7 +193,7 @@ proctl already supports it — reads `process.env.PROCTL_GITHUB_TOKEN` in regist
 4. Write hooks if needed (`<name>/hooks/<name>.ps1`)
 5. `git add <name>/ && git commit && git push`
 6. Update `core/commands/provana.md` table with new plugin
-7. Test: `proctl add 109628/provana-plugins --plugin <name> -a claude -y`
+7. Test: `proctl add <name> -a claude -y`
 
 No publish step needed for plugins.
 

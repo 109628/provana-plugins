@@ -22,7 +22,8 @@ Show this table of all available Provana plugins:
 | `nextjs` | `proctl add 109628/provana-plugins --plugin nextjs` | nextjs-patterns, component-design | — | eslint-on-edit | Engineering |
 | `databricks` | `proctl add 109628/provana-plugins --plugin databricks` | databricks-cdc, delta-lake | databricks | — | Data |
 | `livekit` | `proctl add 109628/provana-plugins --plugin livekit` | livekit-agent-patterns | livekit | audio-file-guard | AI |
-| `langfuse` | `proctl add 109628/provana-plugins --plugin langfuse` | tracing-patterns, prompt-mgmt | langfuse | — | AI |
+| `langfuse` | `proctl add langfuse` | provana-langfuse-prompts | — | — | AI |
+| `superpowers` | `proctl add superpowers` | 26 skills: TDD, Azure, QA, SRE, orchestration | — | — | All |
 | `deploy` | `proctl add 109628/provana-plugins --plugin deploy` | aca-deploy, azure-devops-push | — | deploy-safety-guard | DevOps |
 | `compliance` | `proctl add 109628/provana-plugins --plugin compliance` | regulatory-standards, owasp | — | dep-vuln-scan | All |
 
