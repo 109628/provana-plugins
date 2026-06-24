@@ -111,10 +111,66 @@
         "path": "skills/team-collaboration",
         "description": "Multi-dev: FE + BE + AI engineer working without interference"
       }
+    },
+    "hooks": {
+      "skill-router": {
+        "event": "SessionStart",
+        "script": "hooks/skill-router.sh",
+        "description": "Classify session phase and domain, write context routing recommendation"
+      },
+      "secrets-scanner": {
+        "event": "PreToolUse",
+        "matcher": "Bash",
+        "script": "hooks/secrets-scanner.sh",
+        "description": "Block bash commands that would expose secrets or credentials"
+      },
+      "injection-detector": {
+        "event": "PreToolUse",
+        "matcher": "Edit|Write",
+        "script": "hooks/injection-detector.sh",
+        "description": "Detect prompt injection patterns in file content being written"
+      },
+      "post-test": {
+        "event": "PostToolUse",
+        "matcher": "Bash",
+        "script": "hooks/post-test.sh",
+        "description": "If the bash command was pytest, gate merge on test/QC verdict"
+      },
+      "doc-drift": {
+        "event": "PostToolUse",
+        "matcher": "Edit|Write",
+        "script": "hooks/doc-drift.sh",
+        "description": "Detect when code diverges from spec docs"
+      },
+      "mem-compile": {
+        "event": "SessionEnd",
+        "script": "hooks/mem-compile.sh",
+        "description": "Compile session memory to project knowledge base on session end"
+      },
+      "board-sync": {
+        "event": "SessionEnd",
+        "script": "hooks/board-sync.sh",
+        "description": "Sync Azure Board task statuses on session end"
+      },
+      "sre-runbook-gen": {
+        "event": "Notification",
+        "script": "hooks/sre-runbook-gen.sh",
+        "description": "Self-gated: auto-generate SRE runbook stub if notification text matches sre_alert/production_incident"
+      },
+      "llmops-alert": {
+        "event": "Notification",
+        "script": "hooks/llmops-alert.sh",
+        "description": "Self-gated: trigger LLMOps alert triage if notification matches llmops_alert/token_cost/model_drift/hallucination"
+      },
+      "arch-notify": {
+        "event": "Notification",
+        "script": "hooks/arch-notify.sh",
+        "description": "Self-gated: notify when architectural decisions are detected in notification text"
+      }
     }
   },
   "agents": {
     "claude-code": { "supported": true },
-    "copilot": { "supported": true, "skills_only": true }
+    "copilot": { "supported": false }
   }
 }
