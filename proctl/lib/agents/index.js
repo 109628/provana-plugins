@@ -2,10 +2,11 @@
 
 const claudeCode = require('./claude-code');
 const copilot = require('./copilot');
+const codex = require('./codex');
 
-const ADAPTERS = { 'claude-code': claudeCode, copilot };
+const ADAPTERS = { 'claude-code': claudeCode, copilot, codex };
 
-// Normalize 'claude' shorthand → 'claude-code'
+// Normalize shorthands
 function normalize(name) {
   if (name === 'claude') return 'claude-code';
   return name;
@@ -14,7 +15,7 @@ function normalize(name) {
 function getAdapter(name) {
   const key = normalize(name);
   const adapter = ADAPTERS[key];
-  if (!adapter) throw new Error(`Unknown agent: "${name}". Valid: claude-code, copilot`);
+  if (!adapter) throw new Error(`Unknown agent: "${name}". Valid: claude-code, copilot, codex`);
   return adapter;
 }
 
