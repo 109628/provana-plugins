@@ -2,10 +2,11 @@
 
 const VALID_HOOK_EVENTS = new Set([
   'PreToolUse', 'PostToolUse', 'UserPromptSubmit',
-  'Stop', 'SessionEnd', 'Notification'
+  'Stop', 'SubagentStop', 'SessionStart', 'SessionEnd',
+  'Notification', 'PreCompact'
 ]);
 
-const VALID_AGENTS = new Set(['claude-code', 'copilot']);
+const VALID_AGENTS = new Set(['claude-code', 'copilot', 'codex']);
 
 class ManifestError extends Error {
   constructor(message, errors) {
